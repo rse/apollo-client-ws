@@ -70,8 +70,9 @@ There is also the alternative module
 for [Apollo Client](https://github.com/apollographql/apollo-client). While
 Apollo-Client-WS sends plain GraphQL request/response messages over
 WebSockets and intentionally has no direct built-in subscription support (although one
-can easily add it on top of it with the `message` event), the Subscriptions-Transport-WS module
-uses an [own protocol](https://github.com/apollographql/subscriptions-transport-ws/blob/master/src/message-types.ts)
+can easily add it on top of it with the `message` event and the `query:request` and `query:response` hooks),
+the Subscriptions-Transport-WS module uses an
+[own protocol](https://github.com/apollographql/subscriptions-transport-ws/blob/master/src/message-types.ts)
 on top of WebSockets to support the subscription notification and
 by design uses an opinionated variant of subscription support on the server side.
 
