@@ -20,8 +20,10 @@ based `NetworkInterface` layer for the JavaScript GraphQL client library
 It was developed for and is intended to be used with the [HAPI](http://hapijs.com/) server
 framework and its seamless WebSocket protocol integration module
 [HAPI-Plugin-WebSocket](https://github.com/rse/hapi-plugin-websocket),
-although could be used with any GraphQL server speaking plain (JSON-encoded) GraphQL
-request/response messages over WebSocket connections.
+although it could be used with any GraphQL server speaking plain (JSON-encoded) GraphQL
+request/response messages over WebSocket connections. It has deferred
+connection establishment and connection keepalive support and can
+reconnect automatically.
 
 Installation
 ------------
@@ -74,7 +76,10 @@ can easily add it on top of it with the `message` event and the `query:request` 
 the Subscriptions-Transport-WS module uses an
 [own protocol](https://github.com/apollographql/subscriptions-transport-ws/blob/master/src/message-types.ts)
 on top of WebSockets to support the subscription notification and
-by design uses an opinionated variant of subscription support on the server side.
+by design uses an opinionated way of implementing GraphQL subscriptions
+on the server side. The Apollo-Client-WS instead provides plain
+WebSocket support. Even without any GraphQL subscriptions functionality, it
+can still provide a fast and reliable GraphQL network transport layer.
 
 License
 -------
