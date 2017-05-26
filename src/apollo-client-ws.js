@@ -26,6 +26,7 @@
 import WebSocket                      from "ws"
 import { print as printGraphQLQuery } from "graphql/language/printer"
 import compressGrapQLQuery            from "graphql-query-compress"
+import Latching                       from "latching"
 
 /*  internal dependencies  */
 import NetworkInterfaceStd            from "./apollo-client-std"
@@ -50,7 +51,16 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
         /*  initialize state variables  */
         this._ws = null
         this._to = null
+
+        /*  provide latching sub-system  */
+        this.latching = new Latching()
     }
+
+    /*  pass-through latching sub-system  */
+    hook    (...args) { return this.latching.hook(...args) }
+    at      (...args) { return this.latching.at(...args) }
+    latch   (...args) { return this.latching.latch(...args) }
+    unlatch (...args) { return this.latching.unlatch(...args) }
 
     /*  ADDON: log a debug message  */
     log (level, msg) {
@@ -95,7 +105,6 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 if (this._args.opts.keepalive > 0) {
                     this.log(2, "connect: start auto-disconnect timer")
                     this._to = setTimeout(() => {
-                        console.log("TIMEOUT")
                         this.disconnect()
                     }, this._args.opts.keepalive)
                 }
@@ -132,6 +141,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 let message = ev.data
                 if (this._args.opts.encoding === "json")
                     message = JSON.parse(message)
+                message = this.hook("receive:message", "pass", message)
                 this.emit("message", message)
             }
             ws.addEventListener("message", onMessage)
@@ -175,6 +185,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 resolve()
         })
         .then(() => {
+            message = this.hook("send:message", "pass", message)
             if (this._args.opts.encoding === "json")
                 message = JSON.stringify(message)
             this._ws.send(message)
@@ -213,6 +224,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 })
                 if (this._args.opts.compress === true)
                     request.query = compressGrapQLQuery(request.query)
+                request = this.hook("query:request", "pass", request)
                 if (this._args.opts.encoding === "json")
                     request = JSON.stringify(request)
 
@@ -236,6 +248,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                             return
                         }
                     }
+                    response = this.hook("query:response", "pass", response)
                     resolve(response)
                 }
                 this._ws.addEventListener("error",   onError)
