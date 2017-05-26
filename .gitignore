@@ -1,2 +1,4 @@
 node_modules
 lib
+smp/node_modules
+smp/client-browser.bundle.js
