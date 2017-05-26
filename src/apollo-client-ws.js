@@ -44,7 +44,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
             compress:          false,
             encoding:          "json",
             keepalive:         0,
-            reconnectattempts: 3,
+            reconnectattempts: 10,
             reconnectdelay:    2 * 1000
         }, this._args.opts)
 
