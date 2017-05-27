@@ -288,6 +288,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
 /*  export classes  */
 module.exports = {
     NetworkInterfaceStd,
-    NetworkInterfaceWS
+    NetworkInterfaceWS,
+    createNetworkInterface: (...args) => new NetworkInterfaceWS(...args)
 }
 
