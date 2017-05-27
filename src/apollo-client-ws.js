@@ -27,6 +27,7 @@ import WebSocket                      from "ws"
 import { print as printGraphQLQuery } from "graphql/language/printer"
 import compressGraphQLQuery           from "graphql-query-compress"
 import Latching                       from "latching"
+import Ducky                          from "ducky"
 
 /*  internal dependencies  */
 import NetworkInterfaceStd            from "./apollo-client-std"
@@ -140,15 +141,24 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
             }
             ws.addEventListener("close", onClose)
 
-            /*  react (always) on received messages  */
+            /*  react (always) on received non-GraphQL-response messages  */
             const onMessage = (ev) => {
-                let message = ev.data
-                this.log(2, `message received (encoded): ${JSON.stringify(message)}`)
+                let messageEncoded = ev.data
+                let messageDecoded = messageEncoded
                 if (this._args.opts.encoding === "json")
-                    message = JSON.parse(message)
-                message = this.hook("receive:message", "pass", message)
-                this.log(2, `message received (decoded): ${JSON.stringify(message)}`)
-                this.emit("receive", message)
+                    messageDecoded = JSON.parse(messageDecoded)
+                messageDecoded = this.hook("receive:message", "pass", messageDecoded)
+                let isResponse = false
+                if (typeof messageDecoded === "object" && messageDecoded !== null) {
+                    if (Ducky.validate(messageDecoded,
+                        "({ data: Object, errors?: [ Object* ] } | { data?: Object, errors: [ Object* ] })"))
+                        isResponse = true
+                }
+                if (!isResponse) {
+                    this.log(2, `message received (encoded): ${JSON.stringify(messageEncoded)}`)
+                    this.log(2, `message received (decoded): ${JSON.stringify(messageDecoded)}`)
+                    this.emit("receive", messageDecoded)
+                }
             }
             ws.addEventListener("message", onMessage)
         })
