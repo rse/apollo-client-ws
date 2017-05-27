@@ -90,8 +90,8 @@ receiving non-GraphQL response messages from the server and use the
 regular GraphQL request/response messages.
 
 For example, assume your custom protocol is based on messages of the
-form `{ cmd: "...", args: [ ... ] }`, then you could implement it on top
-of Apollo-Client-WS the following way:
+form `{ cmd: "...", args: [ ... ] }`, then you could implement it
+with Apollo-Client-WS the following way:
 
 ```js
 /*  send a subscribe command  */
