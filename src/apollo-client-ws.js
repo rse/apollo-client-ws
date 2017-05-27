@@ -80,6 +80,8 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
 
             /*  react (once) on error  */
             const onError = (ev) => {
+                if (this._ws !== null && this._ws._explicitDisconnect)
+                    return
                 this.log(1, `connect: end (connection error: ${ev.message})`)
                 ws.removeEventListener("error", onError)
                 ws._errorOnConnect = true
@@ -116,6 +118,8 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
 
             /*  react (once) on the connection closing  */
             const onClose = (ev) => {
+                if (this._ws !== null && this._ws._explicitDisconnect)
+                    return
                 this.log(1, `connection closed (code: ${ev.code})`)
                 ws.removeEventListener("close", onClose)
                 if (this._to !== null)
@@ -156,10 +160,17 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
         this.log(1, "disconnect: begin")
         return new Promise((resolve, reject) => {
             if (this._ws !== null) {
+                this._ws._explicitDisconnect = true
                 const onClose = (ev) => {
+                    if (this._ws === null)
+                        return
+                    this._ws.removeEventListener("close", onClose)
+                    if (this._to !== null) {
+                        clearTimeout(this._to)
+                        this._to = null
+                    }
+                    this._ws = null
                     this.log(1, "disconnect: end")
-                    if (this._ws !== null)
-                        this._ws.removeEventListener("close", onClose)
                     resolve()
                 }
                 this._ws.addEventListener("close", onClose)
