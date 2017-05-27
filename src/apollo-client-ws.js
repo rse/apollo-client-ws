@@ -25,7 +25,7 @@
 /*  external dependencies  */
 import WebSocket                      from "ws"
 import { print as printGraphQLQuery } from "graphql/language/printer"
-import compressGrapQLQuery            from "graphql-query-compress"
+import compressGraphQLQuery           from "graphql-query-compress"
 import Latching                       from "latching"
 
 /*  internal dependencies  */
@@ -77,7 +77,6 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
         return new Promise((resolve, reject) => {
             /*   create a new WebSocket client  */
             let ws = new WebSocket(this._args.uri, this._args.protocols)
-            // ws.binaryType = "arraybuffer"
 
             /*  react (once) on error  */
             const onError = (ev) => {
@@ -223,7 +222,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                     query: printGraphQLQuery(request.query)
                 })
                 if (this._args.opts.compress === true)
-                    request.query = compressGrapQLQuery(request.query)
+                    request.query = compressGraphQLQuery(request.query)
                 request = this.hook("query:request", "pass", request)
                 if (this._args.opts.encoding === "json")
                     request = JSON.stringify(request)
