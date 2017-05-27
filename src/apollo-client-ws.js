@@ -82,8 +82,10 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
             const onError = (ev) => {
                 this.log(1, `connect: end (connection error: ${ev.message})`)
                 ws.removeEventListener("error", onError)
-                ws._error = true
+                ws._errorOnConnect = true
                 if (attempt < this._args.opts.reconnectattempts) {
+                    this.log(2, "connection error: trigger new connect attempt " +
+                        `(in ${this._args.opts.reconnectdelay / 1000}s)`)
                     setTimeout(() => {
                         this.connect(attempt + 1)
                             .then(() => resolve())
@@ -114,17 +116,18 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
 
             /*  react (once) on the connection closing  */
             const onClose = (ev) => {
-                this.log(2, `connect: connection closed (code: ${ev.code})`)
+                this.log(1, `connection closed (code: ${ev.code})`)
                 ws.removeEventListener("close", onClose)
                 if (this._to !== null)
                     clearTimeout(this._to)
                 this._to = null
                 this._ws = null
-                let wasError = ws._error
-                delete ws._error
+                let errorOnConnect = ws._errorOnConnect
+                delete ws._errorOnConnect
                 this.emit("close")
-                if (!wasError && (ev.code > 1000 || this._args.opts.keepalive === 0)) {
-                    this.log(2, "connect: connection close triggers auto-(re)connect")
+                if (!errorOnConnect && (ev.code > 1000 || this._args.opts.keepalive === 0)) {
+                    this.log(2, "connection closed: trigger re-connect " +
+                        `(in ${this._args.opts.reconnectdelay / 1000}s)`)
                     setTimeout(() => {
                         this.connect()
                             .catch((err) => void (err))
@@ -133,14 +136,15 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
             }
             ws.addEventListener("close", onClose)
 
-            /*  react (always) on receiving messages  */
+            /*  react (always) on received messages  */
             const onMessage = (ev) => {
-                this.log(2, `connect: message: ${ev.data}`)
                 let message = ev.data
+                this.log(2, `message received (encoded): ${JSON.stringify(message)}`)
                 if (this._args.opts.encoding === "json")
                     message = JSON.parse(message)
                 message = this.hook("receive:message", "pass", message)
-                this.emit("message", message)
+                this.log(2, `message received (decoded): ${JSON.stringify(message)}`)
+                this.emit("receive", message)
             }
             ws.addEventListener("message", onMessage)
         })
@@ -170,7 +174,6 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
 
     /*  ADDON: send raw message to the peer  */
     send (message) {
-        this.emit("send", message)
         this.log(1, "send: begin")
         return new Promise((resolve, reject) => {
             if (this._ws === null) {
@@ -183,9 +186,12 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 resolve()
         })
         .then(() => {
+            this.emit("send", message)
+            this.log(2, `message send (decoded): ${JSON.stringify(message)}`)
             message = this.hook("send:message", "pass", message)
             if (this._args.opts.encoding === "json")
                 message = JSON.stringify(message)
+            this.log(2, `message send (encoded): ${JSON.stringify(message)}`)
             this._ws.send(message)
             this.log(1, "send: end")
         })
@@ -195,7 +201,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
     query (request) {
         this.emit("query", request)
         this.log(1, "query: begin")
-        this.log(2, `query: request: ${JSON.stringify(request)}`)
+        this.log(2, `query: request (decoded): ${JSON.stringify(request)}`)
         const options = Object.assign({}, this._args.opts)
         return new Promise((resolve, reject) => {
             /*  optionally perform the deferred connect  */
@@ -234,9 +240,9 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                     reject(ev)
                 }
                 onMessage = (ev) => {
-                    this.log(2, `query: response message: ${ev.data}`)
                     this._ws.removeEventListener("error", onError)
                     let response = ev.data
+                    this.log(2, `query: response (encoded): ${JSON.stringify(response)}`)
                     if (this._args.opts.encoding === "json") {
                         try {
                             response = JSON.parse(response)
@@ -253,7 +259,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 this._ws.addEventListener("message", onMessage)
 
                 /*  send the request  */
-                this.log(2, `query: request message: ${request}`)
+                this.log(2, `query: request (encoded): ${JSON.stringify(request)}`)
                 this._ws.send(request)
             })
         })
@@ -272,6 +278,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                     this.disconnect()
                 }, this._args.opts.keepalive)
             }
+            this.log(2, `query: response (decoded): ${JSON.stringify(response)}`)
             this.log(1, "query: end")
             return response
         })
