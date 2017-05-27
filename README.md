@@ -79,13 +79,15 @@ unfortunately, but by design, uses an opinionated way of implementing GraphQL su
 on the GraphQL engine side.
 
 The Apollo-Client-WS instead provides plain GraphQL over WebSocket
-communication and without any additional subscription protocol. For implementing a
-subscription or similar add-on protocol on top of Apollo-Client-WS,
-use the `send` method to send non-GraphQL request messages to
-the server, use the `receive` event for receiving non-GraphQL
-response messages from the server and use the `query:request` and
-`query:response` hooks to optionally wrap/unwrap regular GraphQL
-request/response messages.
+communication, without any additional subscription protocol, and hence
+does not need any special support on the server side.
+
+For implementing a subscription or similar add-on protocol on top
+of Apollo-Client-WS, use the `send` method to send non-GraphQL
+request messages to the server, use the `receive` event for
+receiving non-GraphQL response messages from the server and use the
+`query:request` and `query:response` hooks to optionally wrap/unwrap
+regular GraphQL request/response messages.
 
 For example, assume your custom protocol is based on messages of the
 form `{ cmd: "...", args: [ ... ] }`, then you could implement it on top
