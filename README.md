@@ -70,16 +70,49 @@ Notice
 There is also the alternative module
 [Subscriptions-Transport-WS](https://github.com/apollographql/subscriptions-transport-ws)
 for [Apollo Client](https://github.com/apollographql/apollo-client). While
-Apollo-Client-WS sends plain GraphQL request/response messages over
-WebSockets and intentionally has no direct built-in subscription support (although one
-can easily add it on top of it with the `message` event and the `query:request` and `query:response` hooks),
+Apollo-Client-WS transfers plain GraphQL request/response messages over
+WebSocket connections and intentionally has no direct built-in subscription support,
 the Subscriptions-Transport-WS module uses an
 [own protocol](https://github.com/apollographql/subscriptions-transport-ws/blob/master/src/message-types.ts)
 on top of WebSockets to support the subscription notification and
 by design uses an opinionated way of implementing GraphQL subscriptions
-on the server side. The Apollo-Client-WS instead provides plain
-WebSocket support. Even without any GraphQL subscriptions functionality, it
-can still provide a fast and reliable GraphQL network transport layer.
+on the server side.
+
+The Apollo-Client-WS instead provides plain GraphQL over WebSocket
+communication, without any additional protocol. For implementing a
+subscription or similar add-on functionality on top of Apollo-Client-WS,
+use the `send` method to send non-GraphQL request messages to
+the server, use the `receive` event for receiving non-GraphQL
+response messages from the server and use the `query:request` and
+`query:response` hooks to optionally wrap/unwrap regular GraphQL
+request/response messages.
+
+For example, assume your custom protocol is based on messages of the
+form `{ cmd: "...", args: [ ... ] }`, then you could implement it on top
+of Apollo-Client-WS the following way:
+
+```js
+/*  send a subscribe command  */
+networkInterface.send({ cmd: "SUBSCRIBE", args: [ 42 ] })
+
+/*  receive a notification command  */
+networkInterface.on("receive", ({ cmd, args }) => {
+    if (cmd === "NOTIFY")
+        ...
+})
+
+/*  wrap GraphQL request into a request command  */
+networkInterface.latch("query:request", (request) => {
+    return { cmd: "REQUEST", args: [ request ] }
+})
+
+/*  unwrap GraphQL response from a response command  */
+networkInterface.latch("query:response", (response) => {
+    if (response.cmd === "RESPONSE")
+         response = response.args[0]
+    return response
+})
+```
 
 License
 -------
