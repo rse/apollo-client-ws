@@ -80,9 +80,9 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
 
             /*  react (once) on error  */
             const onError = (ev) => {
+                this.log(1, `connect: end (connection error: ${ev.message})`)
                 ws.removeEventListener("error", onError)
                 ws._error = true
-                this.log(1, `connect: end (connection error: ${ev.message})`)
                 if (attempt < this._args.opts.reconnectattempts) {
                     setTimeout(() => {
                         this.connect(attempt + 1)
@@ -107,7 +107,6 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                         this.disconnect()
                     }, this._args.opts.keepalive)
                 }
-                this._open = true
                 this.emit("open")
                 resolve()
             }
