@@ -36,11 +36,11 @@ Usage
 -----
 
 ```js
-const gql                    = require("graphql-tag")
-const ApolloClient           = require("apollo-client")
-const { NetworkInterfaceWS } = require("apollo-client-ws")
+const gql            = require("graphql-tag")
+const ApolloClient   = require("apollo-client")
+const ApolloClientWS = require("apollo-client-ws")
 
-const networkInterface = new NetworkInterfaceWS({
+const networkInterface = ApolloClientWS.createNetworkInterface({
     uri: "ws://127.0.0.1:12345/api",
     opts: {
         /*  (all options and their default values)  */

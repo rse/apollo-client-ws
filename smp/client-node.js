@@ -1,11 +1,11 @@
 
 /*  external requirements  */
-const gql                    = require("graphql-tag")
-const ApolloClient           = require("apollo-client")
-const { NetworkInterfaceWS } = require("apollo-client-ws")
+const gql            = require("graphql-tag")
+const ApolloClient   = require("apollo-client")
+const ApolloClientWS = require("apollo-client-ws")
 
 /*  create the WebSocket network interface for Apollo Client  */
-const networkInterface = new NetworkInterfaceWS({
+const networkInterface = ApolloClientWS.createNetworkInterface({
     uri: "ws://127.0.0.1:12345/api",
     opts: {
         debug:     0,
