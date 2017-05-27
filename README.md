@@ -91,7 +91,8 @@ regular GraphQL request/response messages.
 
 For example, assume your custom protocol is based on messages of the
 form `{ cmd: "...", args: [ ... ] }`, then you could implement it
-with Apollo-Client-WS the following way:
+with Apollo-Client-WS the following way (ignoring error handling for
+illustration purposes):
 
 ```js
 /*  send a subscribe command  */
