@@ -101,7 +101,7 @@ networkInterface.send({ cmd: "SUBSCRIBE", args: [ 42 ] })
 /*  receive a notification command  */
 networkInterface.on("receive", ({ cmd, args }) => {
     if (cmd === "NOTIFY")
-        ...
+        notify(...args)
 })
 
 /*  wrap GraphQL request into a request command  */
