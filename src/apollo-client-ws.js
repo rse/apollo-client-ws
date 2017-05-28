@@ -169,8 +169,8 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
             return Promise.resolve(this._connectPromise)
         else {
             return (this._connectPromise = connectInternal(0).then(
-                () => { delete this._connectPromise },
-                () => { delete this._connectPromise }
+                ()    => { delete this._connectPromise },
+                (err) => { delete this._connectPromise; throw err }
             ))
         }
     }
