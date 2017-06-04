@@ -106,12 +106,11 @@ the Subscriptions-Transport-WS module uses an
 on top of WebSockets to support the subscription notification and
 unfortunately (from the perspective of the Apollo-Client-WS author), but by design, uses an
 opinionated way of implementing GraphQL subscriptions on the GraphQL engine side.
-
 The Apollo-Client-WS instead provides plain WebSocket
 communication, without any additional subscription protocol, and hence
 does not enfore any special support for subscriptions on the server side.
 
-For implementing a subscription or similar add-on protocol on top
+For implementing a GraphQL subscription or similar add-on protocol on top
 of Apollo-Client-WS, simply use the `send` method to send non-GraphQL
 request messages to the server and use the `receive` event for
 receiving non-GraphQL response messages from the server.
