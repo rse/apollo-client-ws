@@ -46,7 +46,7 @@ const networkInterface = ApolloClientWS.createNetworkInterface({
     uri: "ws://127.0.0.1:12345/api",
     opts: {
         /*  (all options and their default values)  */
-        debug:             false,
+        debug:             0,
         log:               (msg) => { console.log(msg) },
         protocols:         [],
         compress:          false,

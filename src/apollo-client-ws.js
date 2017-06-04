@@ -39,7 +39,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
 
         /*  provide default values for options  */
         this._args.opts = Object.assign({
-            debug:             false,
+            debug:             0,
             log:               (msg) => { /* eslint no-console: off */ console.log(msg) },
             protocols:         [],
             compress:          false,
