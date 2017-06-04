@@ -49,6 +49,20 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
             reconnectdelay:    2 * 1000
         }, this._args.opts)
 
+        /*  validate options  */
+        let errors = []
+        if (!Ducky.validate(this._args.opts, `{
+            debug:             number,
+            log:               function,
+            protocols:         [ string* ],
+            compress:          boolean,
+            encoding:          string,
+            keepalive:         number,
+            reconnectattempts: number,
+            reconnectdelay:    number
+        }`, errors))
+            throw new Error(`invalid options: ${errors.join("; ")}`)
+
         /*  initialize state variables  */
         this._ws = null
         this._to = null
