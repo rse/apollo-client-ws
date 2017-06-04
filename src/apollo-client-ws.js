@@ -73,7 +73,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
         this.latching = new Latching()
     }
 
-    /*  pass-through latching sub-system  */
+    /*  pass-through methods of latching sub-system  */
     hook    (...args) { return this.latching.hook(...args) }
     at      (...args) { return this.latching.at(...args) }
     latch   (...args) { return this.latching.latch(...args) }
@@ -134,33 +134,6 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 }
                 ws.addEventListener("open", onOpen)
 
-                /*  react (once) on the connection closing  */
-                const onClose = (ev) => {
-                    if (this._ws !== null && this._ws._explicitDisconnect)
-                        return
-                    this.log(1, `connection closed (code: ${ev.code})`)
-                    ws.removeEventListener("open",    onOpen)
-                    ws.removeEventListener("close",   onClose)
-                    ws.removeEventListener("error",   onError)
-                    ws.removeEventListener("message", onMessage)
-                    if (this._to !== null)
-                        clearTimeout(this._to)
-                    this._to = null
-                    this._ws = null
-                    let errorOnConnect = ws._errorOnConnect
-                    delete ws._errorOnConnect
-                    this.emit("close")
-                    if (!errorOnConnect && (ev.code > 1000 || this._args.opts.keepalive === 0)) {
-                        this.log(2, "connection closed: trigger re-connect " +
-                            `(in ${this._args.opts.reconnectdelay / 1000}s)`)
-                        setTimeout(() => {
-                            this.connect()
-                                .catch((err) => void (err))
-                        }, this._args.opts.reconnectdelay)
-                    }
-                }
-                ws.addEventListener("close", onClose)
-
                 /*  react (always) on received response messages  */
                 const onMessage = (ev) => {
                     let messageEncoded = ev.data
@@ -209,6 +182,33 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                     }
                 }
                 ws.addEventListener("message", onMessage)
+
+                /*  react (once) on the connection closing  */
+                const onClose = (ev) => {
+                    if (this._ws !== null && this._ws._explicitDisconnect)
+                        return
+                    this.log(1, `connection closed (code: ${ev.code})`)
+                    ws.removeEventListener("error",   onError)
+                    ws.removeEventListener("open",    onOpen)
+                    ws.removeEventListener("message", onMessage)
+                    ws.removeEventListener("close",   onClose)
+                    if (this._to !== null)
+                        clearTimeout(this._to)
+                    this._to = null
+                    this._ws = null
+                    let errorOnConnect = ws._errorOnConnect
+                    delete ws._errorOnConnect
+                    this.emit("close")
+                    if (!errorOnConnect && (ev.code > 1000 || this._args.opts.keepalive === 0)) {
+                        this.log(2, "connection closed: trigger re-connect " +
+                            `(in ${this._args.opts.reconnectdelay / 1000}s)`)
+                        setTimeout(() => {
+                            this.connect()
+                                .catch((err) => void (err))
+                        }, this._args.opts.reconnectdelay)
+                    }
+                }
+                ws.addEventListener("close", onClose)
             })
         }
         if (this._connectPromise)
