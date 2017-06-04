@@ -215,16 +215,39 @@ server.route({
     method: "POST",
     path:   "/api",
     config: {
-        plugins: { websocket: true },
+        plugins: {
+            websocket: {
+                connect: ({ ws, req }) => {
+                    setTimeout(() => {
+                        let msg = JSON.stringify([ "NOTIFY", [ "foo", "bar", "quux" ] ])
+                        try { ws.send(msg) }
+                        catch (ex) { void (ex) }
+                    }, 1000)
+                 }
+            }
+        },
         payload: { output: "data", parse: true, allow: "application/json" }
     },
     handler: (request, reply) => {
         /*  determine request  */
         if (typeof request.payload !== "object" || request.payload === null)
             return reply(Boom.badRequest("invalid request"))
-        let query     = request.payload.query
-        let variables = request.payload.variables
-        let operation = request.payload.operationName
+
+        /*  unwrap request  */
+        let txid, query, variables, operation
+        if (   request.payload instanceof Array
+            && request.payload.length === 3
+            && request.payload[0] === "REQUEST") {
+            txid      = request.payload[1]
+            query     = request.payload[2].query
+            variables = request.payload[2].variables
+            operation = request.payload[2].operationName
+        }
+        else {
+            query     = request.payload.query
+            variables = request.payload.variables
+            operation = request.payload.operationName
+        }
 
         /*  support special case of GraphiQL  */
         if (typeof variables === "string")
@@ -237,8 +260,12 @@ server.route({
 
         /*  execute the GraphQL query against the GraphQL schema  */
         GraphQL.graphql(schema, query, null, ctx, variables, operation).then((result) => {
+            if (txid !== undefined)
+                result = [ "RESPONSE", txid, result ]
             return reply(result).code(200)
         }).catch((result) => {
+            if (txid !== undefined)
+                result = [ "RESPONSE", txid, result ]
             return reply(result).code(200)
         })
     }

@@ -20,10 +20,9 @@ based `NetworkInterface` layer for the JavaScript GraphQL client library
 It was developed for and is intended to be used with the [HAPI](http://hapijs.com/) server
 framework and its seamless WebSocket protocol integration module
 [HAPI-Plugin-WebSocket](https://github.com/rse/hapi-plugin-websocket),
-although it could be used with any GraphQL server speaking plain (JSON-encoded) GraphQL
-request/response messages over WebSocket connections. It has deferred
-connection establishment and connection keepalive support and can
-reconnect automatically.
+although it could be used with any GraphQL server speaking over
+WebSocket connections. It has deferred connection establishment and
+connection keepalive support and can reconnect automatically.
 
 Installation
 ------------
@@ -64,56 +63,65 @@ apolloClient.query({ query: gql`{ ... }` })
     .catch((err)     => { ...  })
 ```
 
+Network Protocol
+----------------
+
+Apollo-Client-WS on the WebSocket connection speaks a very simple
+protocol based on the following frame format:
+
+```
+[ type: string, ...args: any ]
+```
+
+In particular, the following frames are used for the GraphQL requests
+and (their corresponding) responses:
+
+```
+[ type: string = "REQUEST",  txid: number, { query: string, variables?: any, operationName?: string } ]
+[ type: string = "RESPONSE", txid: number, { data?: any, error?: any[] ]
+```
+
+When sending a custom message via `networkInterface::send(type: string, data: any[])`,
+the following frame is sent:
+
+```
+[ type, ...data ]
+```
+
+When receiving such a custom frame, it is deliverd via `networkInterface::on("receive", { type, data }) => { ... })`.
+
 Notice
 ------
 
 There is also the alternative module
 [Subscriptions-Transport-WS](https://github.com/apollographql/subscriptions-transport-ws)
 for [Apollo Client](https://github.com/apollographql/apollo-client). While
-Apollo-Client-WS transfers plain GraphQL request/response messages over
-WebSocket connections and intentionally has no direct built-in subscription support,
+Apollo-Client-WS
+intentionally has no direct built-in GraphQL subscription support,
 the Subscriptions-Transport-WS module uses an
 [own protocol](https://github.com/apollographql/subscriptions-transport-ws/blob/master/src/message-types.ts)
 on top of WebSockets to support the subscription notification and
 unfortunately, but by design, uses an opinionated way of implementing GraphQL subscriptions
 on the GraphQL engine side.
 
-The Apollo-Client-WS instead provides plain GraphQL over WebSocket
+The Apollo-Client-WS instead provides plain WebSocket
 communication, without any additional subscription protocol, and hence
 does not need any special support on the server side.
 
 For implementing a subscription or similar add-on protocol on top
 of Apollo-Client-WS, use the `send` method to send non-GraphQL
-request messages to the server, use the `receive` event for
-receiving non-GraphQL response messages from the server and use the
-`query:request` and `query:response` hooks to optionally wrap/unwrap
-regular GraphQL request/response messages.
-
-For example, assume your custom protocol is based on messages of the
-form `{ cmd: "...", args: [ ... ] }`, then you could implement it
-with Apollo-Client-WS the following way (ignoring error handling for
-illustration purposes):
+request messages to the server and use the `receive` event for
+receiving non-GraphQL response messages from the server.
 
 ```js
 /*  send a subscribe command  */
-networkInterface.send({ cmd: "SUBSCRIBE", args: [ 42 ] })
+let data = [ "foo", 42 ]
+networkInterface.send("SUBSCRIBE", data)
 
 /*  receive a notification command  */
-networkInterface.on("receive", ({ cmd, args }) => {
-    if (cmd === "NOTIFY")
-        notify(...args)
-})
-
-/*  wrap GraphQL request into a request command  */
-networkInterface.latch("query:request", (request) => {
-    return { cmd: "REQUEST", args: [ request ] }
-})
-
-/*  unwrap GraphQL response from a response command  */
-networkInterface.latch("query:response", (response) => {
-    if (response.cmd === "RESPONSE")
-         response = response.args[0]
-    return response
+networkInterface.on("receive", ({ type, data }) => {
+    if (type === "NOTIFY")
+        notify(...data)
 })
 ```
 

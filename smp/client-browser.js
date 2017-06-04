@@ -15,6 +15,11 @@ const networkInterface = ApolloClientWS.createNetworkInterface({
     }
 })
 
+/*  receive non-GraphQL messages  */
+networkInterface.on("receive", (message) => {
+    console.log("RECEIVE", message)
+})
+
 /*  create the Apollo Client instance  */
 const apolloClient = new ApolloClient.ApolloClient({
     networkInterface: networkInterface

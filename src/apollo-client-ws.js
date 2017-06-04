@@ -52,6 +52,8 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
         /*  initialize state variables  */
         this._ws = null
         this._to = null
+        this._txcb = {}
+        this._txid = 0
 
         /*  provide latching sub-system  */
         this.latching = new Latching()
@@ -81,7 +83,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 /*   create a new WebSocket client  */
                 let ws = new WebSocket(this._args.uri, this._args.protocols)
 
-                /*  react (once) on error  */
+                /*  react (once) on error messages  */
                 const onError = (ev) => {
                     if (this._ws !== null && this._ws._explicitDisconnect)
                         return
@@ -105,8 +107,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 /*  react (once) on the connection opening  */
                 const onOpen = () => {
                     this.log(1, "connect: end (connection open)")
-                    ws.removeEventListener("open",  onOpen)
-                    ws.removeEventListener("error", onError)
+                    ws.removeEventListener("open", onOpen)
                     this._ws = ws
                     if (this._args.opts.keepalive > 0) {
                         this.log(2, "connect: start auto-disconnect timer")
@@ -124,7 +125,10 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                     if (this._ws !== null && this._ws._explicitDisconnect)
                         return
                     this.log(1, `connection closed (code: ${ev.code})`)
-                    ws.removeEventListener("close", onClose)
+                    ws.removeEventListener("open",    onOpen)
+                    ws.removeEventListener("close",   onClose)
+                    ws.removeEventListener("error",   onError)
+                    ws.removeEventListener("message", onMessage)
                     if (this._to !== null)
                         clearTimeout(this._to)
                     this._to = null
@@ -143,23 +147,51 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 }
                 ws.addEventListener("close", onClose)
 
-                /*  react (always) on received non-GraphQL-response messages  */
+                /*  react (always) on received response messages  */
                 const onMessage = (ev) => {
                     let messageEncoded = ev.data
+
+                    /*  decode the message  */
                     let messageDecoded = messageEncoded
-                    if (this._args.opts.encoding === "json")
-                        messageDecoded = JSON.parse(messageDecoded)
-                    messageDecoded = this.hook("receive:message", "pass", messageDecoded)
-                    let isResponse = false
-                    if (typeof messageDecoded === "object" && messageDecoded !== null) {
-                        if (Ducky.validate(messageDecoded,
-                            "({ data: Object, errors?: [ Object* ] } | { data?: Object, errors: [ Object* ] })"))
-                            isResponse = true
+                    if (this._args.opts.encoding === "json") {
+                        try {
+                            messageDecoded = JSON.parse(messageDecoded)
+                        }
+                        catch (err) {
+                            void (err)
+                            return
+                        }
                     }
-                    if (!isResponse) {
-                        this.log(2, `message received (encoded): ${JSON.stringify(messageEncoded)}`)
-                        this.log(2, `message received (decoded): ${JSON.stringify(messageDecoded)}`)
-                        this.emit("receive", messageDecoded)
+                    messageDecoded = this.hook("receive:message", "pass", messageDecoded)
+
+                    /*  unframe the message  */
+                    if (   typeof messageDecoded === "object"
+                        && messageDecoded !== null
+                        && messageDecoded instanceof Array
+                        && messageDecoded.length >= 2
+                        && typeof messageDecoded[0] === "string") {
+                        /*  is a valid frame  */
+                        if (   messageDecoded.length === 3
+                            && messageDecoded[0] === "RESPONSE"
+                            && typeof messageDecoded[1] === "number"
+                            && typeof messageDecoded[2] === "object") {
+                            /*  is a valid GraphQL response  */
+                            this.log(2, `query: response (encoded): ${JSON.stringify(messageEncoded)}`)
+                            let [ txid, response ] = messageDecoded.slice(1)
+                            if (this._txcb[txid] !== undefined) {
+                                if (Ducky.validate(response,
+                                    "({ data: Object, errors?: [ Object* ] } | { data?: Object, errors: [ Object* ] })"))
+                                    this._txcb[txid](response)
+                                else
+                                    this._txcb[txid](null, "invalid GraphQL response object")
+                            }
+                        }
+                        else {
+                            /*  is a non-standard message  */
+                            this.log(2, `message received (encoded): ${JSON.stringify(messageEncoded)}`)
+                            this.log(2, `message received (decoded): ${JSON.stringify(messageDecoded)}`)
+                            this.emit("receive", { type: messageDecoded[0], data: messageDecoded.slice(1) })
+                        }
                     }
                 }
                 ws.addEventListener("message", onMessage)
@@ -211,9 +243,10 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
         }
     }
 
-    /*  ADDON: send raw message to the peer  */
-    send (message) {
+    /*  ADDON: send message to the peer  */
+    send (type, data) {
         this.log(1, "send: begin")
+        this.emit("send", { type: type, data: data })
         return new Promise((resolve, reject) => {
             if (this._ws === null) {
                 this.log(2, "send: on-the-fly connect")
@@ -225,11 +258,16 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 resolve()
         })
         .then(() => {
-            this.emit("send", message)
+            /*  frame the message  */
+            let message = [ type, data ]
+
+            /*  encode the message  */
             this.log(2, `message send (decoded): ${JSON.stringify(message)}`)
             message = this.hook("send:message", "pass", message)
             if (this._args.opts.encoding === "json")
                 message = JSON.stringify(message)
+
+            /*  send the message  */
             this.log(2, `message send (encoded): ${JSON.stringify(message)}`)
             this._ws.send(message)
             this.log(1, "send: end")
@@ -268,38 +306,27 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 if (this._args.opts.compress === true)
                     request.query = compressGraphQLQuery(request.query)
                 request = this.hook("query:request", "pass", request)
+
+                /*  frame the request  */
+                let txid = this._txid++
+                request = [ "REQUEST", txid, request ]
+
+                /*  encode the request  */
                 if (this._args.opts.encoding === "json")
                     request = JSON.stringify(request)
-
-                /*  handle resulting error or response  */
-                let onMessage, onError
-                onError = (ev) => {
-                    this.log(2, `query: error: ${ev.message}`)
-                    this._ws.removeEventListener("message", onMessage)
-                    reject(ev)
-                }
-                onMessage = (ev) => {
-                    this._ws.removeEventListener("error", onError)
-                    let response = ev.data
-                    this.log(2, `query: response (encoded): ${JSON.stringify(response)}`)
-                    if (this._args.opts.encoding === "json") {
-                        try {
-                            response = JSON.parse(response)
-                        }
-                        catch (err) {
-                            reject(err)
-                            return
-                        }
-                    }
-                    response = this.hook("query:response", "pass", response)
-                    resolve(response)
-                }
-                this._ws.addEventListener("error",   onError)
-                this._ws.addEventListener("message", onMessage)
 
                 /*  send the request  */
                 this.log(2, `query: request (encoded): ${JSON.stringify(request)}`)
                 this._ws.send(request)
+
+                /*  queue request and await response or error  */
+                this._txcb[txid] = (response, error) => {
+                    delete this._txcb[txid]
+                    if (response)
+                        resolve(response)
+                    else
+                        reject(error)
+                }
             })
         })
         .then((response) => {
