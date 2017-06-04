@@ -108,6 +108,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                         this.log(2, "connection error: trigger new connect attempt " +
                             `(in ${Math.trunc(this._args.opts.reconnectdelay / 1000)}s)`)
                         setTimeout(() => {
+                            /*  handle repeated connection attempts (subsequently)  */
                             connectInternal(attempt + 1)
                                 .then(() => resolve())
                                 .catch((err) => reject(err))
@@ -211,9 +212,12 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 ws.addEventListener("close", onClose)
             })
         }
+
+        /*  handle subsequent connect calls  */
         if (this._connectPromise)
             return Promise.resolve(this._connectPromise)
         else {
+            /*  handle repeated connection attempts (initially)  */
             return (this._connectPromise = connectInternal(0).then(
                 ()    => { delete this._connectPromise },
                 (err) => { delete this._connectPromise; throw err }
@@ -223,10 +227,12 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
 
     /*  ADDON: disconnect from the peer  */
     disconnect () {
+        /*  handle subsequent disconnect calls  */
         if (this._disconnectPromise)
             return Promise.resolve(this._disconnectPromise)
         else {
             return (this._disconnectPromise = new Promise((resolve, reject) => {
+                /*  disconnect from the peer  */
                 this.emit("disconnect")
                 this.log(1, "disconnect: begin")
                 if (this._ws !== null) {
