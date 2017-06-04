@@ -106,7 +106,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                     ws._errorOnConnect = true
                     if (attempt < this._args.opts.reconnectattempts) {
                         this.log(2, "connection error: trigger new connect attempt " +
-                            `(in ${this._args.opts.reconnectdelay / 1000}s)`)
+                            `(in ${Math.trunc(this._args.opts.reconnectdelay / 1000)}s)`)
                         setTimeout(() => {
                             connectInternal(attempt + 1)
                                 .then(() => resolve())
