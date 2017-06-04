@@ -8,7 +8,7 @@ const ApolloClientWS = require("apollo-client-ws")
 const networkInterface = ApolloClientWS.createNetworkInterface({
     uri: "ws://127.0.0.1:12345/api",
     opts: {
-        debug:     0,
+        debug:     2,
         encoding:  "json",
         keepalive: 5 * 1000,
         compress:  true
