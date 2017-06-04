@@ -91,7 +91,7 @@ the following frame is sent:
 [ type, ...data ]
 ```
 
-When receiving such a custom frame, it is deliverd via `networkInterface::on("receive", { type, data }) => { ... })`.
+When receiving such a custom frame, it is delivered via `networkInterface::on("receive", { type, data }) => { ... })`.
 
 Notice
 ------
