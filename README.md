@@ -20,9 +20,12 @@ based `NetworkInterface` layer for the JavaScript GraphQL client library
 It was developed for and is intended to be used with the [HAPI](http://hapijs.com/) server
 framework and its seamless WebSocket protocol integration module
 [HAPI-Plugin-WebSocket](https://github.com/rse/hapi-plugin-websocket),
-although it could be used with any GraphQL server speaking over
-WebSocket connections. It has deferred connection establishment and
-connection keepalive support and can reconnect automatically.
+although it could be used with any GraphQL server speaking WebSocket.
+Apollo-Client-WS has deferred connection establishment, connection
+keepalive support and can reconnect to the server automatically.
+Additionally, beside the GraphQL request/response messages, it also
+allows the application to send/receive arbitrary messages over the
+WebSocket connection, too.
 
 Installation
 ------------
@@ -101,15 +104,15 @@ intentionally has no direct built-in GraphQL subscription support,
 the Subscriptions-Transport-WS module uses an
 [own protocol](https://github.com/apollographql/subscriptions-transport-ws/blob/master/src/message-types.ts)
 on top of WebSockets to support the subscription notification and
-unfortunately, but by design, uses an opinionated way of implementing GraphQL subscriptions
-on the GraphQL engine side.
+unfortunately (from the perspective of the Apollo-Client-WS author), but by design, uses an
+opinionated way of implementing GraphQL subscriptions on the GraphQL engine side.
 
 The Apollo-Client-WS instead provides plain WebSocket
 communication, without any additional subscription protocol, and hence
-does not need any special support on the server side.
+does not enfore any special support for subscriptions on the server side.
 
 For implementing a subscription or similar add-on protocol on top
-of Apollo-Client-WS, use the `send` method to send non-GraphQL
+of Apollo-Client-WS, simply use the `send` method to send non-GraphQL
 request messages to the server and use the `receive` event for
 receiving non-GraphQL response messages from the server.
 
