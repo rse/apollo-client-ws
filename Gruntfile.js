@@ -42,6 +42,7 @@ module.exports = function (grunt) {
                 },
                 options: {
                     transform: [
+                        [ "envify", { PLATFORM: "browser" } ],
                         [ "babelify", {
                             presets: [ "es2015", "es2016", "es2017" ],
                             plugins: [ [ "transform-runtime", {
@@ -68,6 +69,7 @@ module.exports = function (grunt) {
                 },
                 options: {
                     transform: [
+                        [ "envify", { PLATFORM: "node" } ],
                         [ "babelify", { presets: [ "es2015", "es2016", "es2017" ] } ]
                     ],
                     plugin: [
@@ -81,6 +83,7 @@ module.exports = function (grunt) {
                         "eventemitter3",
                         "es6-promise",
                         "ws",
+                        "websocket-framed",
                         "utf-8-validate",
                         "bufferutil"
                     ],
