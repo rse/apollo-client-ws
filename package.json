@@ -24,11 +24,12 @@
         "ws":                             "global:WebSocket"
     },
     "peerDependencies": {
-        "apollo-client":                  "~1.4.0"
+        "apollo-client":                  "~1.4.2"
     },
     "dependencies": {
         "graphql":                        "~0.10.1",
         "graphql-query-compress":         "~0.9.1",
+        "websocket-framed":               "~0.9.10",
         "eventemitter3":                  "~2.0.3",
         "latching":                       "~0.9.6",
         "es6-promise":                    "~4.1.0",
@@ -46,6 +47,7 @@
         "grunt-eslint":                   "~19.0.0",
         "grunt-browserify":               "~5.0.0",
         "browserify":                     "~14.4.0",
+        "envify":                         "~4.0.0",
         "babelify":                       "~7.3.0",
         "babel-preset-es2015":            "~6.24.1",
         "babel-preset-es2016":            "~6.24.1",
@@ -62,7 +64,7 @@
         "eslint-plugin-promise":          "~3.5.0",
         "eslint-plugin-import":           "~2.3.0",
         "eslint-plugin-node":             "~5.0.0",
-        "apollo-client":                  "~1.4.0"
+        "apollo-client":                  "~1.4.2"
     },
     "scripts": {
         "prepublish": "grunt default",
