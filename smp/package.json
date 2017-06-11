@@ -4,12 +4,12 @@
     "description":                        "",
     "dependencies": {
         "graphql":                        "~0.10.1",
-        "graphql-tag":                    "~2.2.1",
+        "graphql-tag":                    "~2.2.2",
         "graphql-tools":                  "~1.0.0",
-        "hapi":                           "~16.3.0",
-        "hapi-plugin-websocket":          "~1.1.6",
+        "hapi":                           "~16.4.3",
+        "hapi-plugin-websocket":          "~1.2.1",
         "boom":                           "~5.1.0",
-        "apollo-client":                  "~1.4.0",
+        "apollo-client":                  "~1.4.2",
         "apollo-client-ws":               "file:../"
     },
     "devDependencies": {
