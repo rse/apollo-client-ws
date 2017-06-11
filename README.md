@@ -20,7 +20,8 @@ based `NetworkInterface` layer for the JavaScript GraphQL client library
 It was developed for and is intended to be used with the [HAPI](http://hapijs.com/) server
 framework and its seamless WebSocket protocol integration module
 [HAPI-Plugin-WebSocket](https://github.com/rse/hapi-plugin-websocket),
-although it could be used with any GraphQL server speaking WebSocket.
+although it could be used with any server speaking GraphQL over a
+[framed WebSocket](https://github.com/rse/websocket-framed) communication.
 Apollo-Client-WS has deferred connection establishment, connection
 keepalive support and can reconnect to the server automatically.
 Additionally, beside the GraphQL request/response messages, it also
@@ -69,42 +70,56 @@ apolloClient.query({ query: gql`{ ... }` })
 Network Protocol
 ----------------
 
-Apollo-Client-WS on the WebSocket connection speaks a very simple
-protocol based on the following frame format:
+Apollo-Client-WS on the WebSocket connection speaks
+[WebSocket-Framed](https://github.com/rse/websocket-framed),
+a very simple protocol based on the following frame format:
 
 ```
-[ type: string, ...args: any ]
+[ fid: number, rid: number, type: string, data: any ]
 ```
 
 In particular, the following frames are used for the GraphQL requests
 and (their corresponding) responses:
 
 ```
-[ type: string = "REQUEST",  txid: number, { query: string, variables?: any, operationName?: string } ]
-[ type: string = "RESPONSE", txid: number, { data?: any, error?: any[] ]
+request: [
+    fid:  number = ...,
+    rid:  number = 0,
+    type: string = "GRAPHQL-REQUEST",
+    data: { query: string, variables?: any, operationName?: string }
+]
+
+response: [
+    fid:  number = ...,
+    rid:  number = request.fid,
+    type: string = "GRAPHQL-RESPONSE",
+    data: { data?: any, error?: any[] }
+]
 ```
 
-When sending a custom message via `networkInterface::send(type: string, data: any[])`,
+When sending a custom message via `networkInterface::send(type: string, data: any)`,
 the following frame is sent:
 
 ```
-[ type, ...data ]
+message: [
+    fid:  number = ...,
+    rid:  number = 0,
+    type: string = type,
+    data: any    = data
 ```
 
-When receiving such a custom frame, it is delivered via `networkInterface::on("receive", { type, data }) => { ... })`.
+When receiving such a custom frame, it is delivered via
+`networkInterface::on("receive", { type, data }) => { ... })`.
 
 Notice
 ------
 
 There is also the alternative module
 [Subscriptions-Transport-WS](https://github.com/apollographql/subscriptions-transport-ws)
-for [Apollo Client](https://github.com/apollographql/apollo-client). While
-Apollo-Client-WS
-intentionally has no direct built-in GraphQL subscription support,
-the Subscriptions-Transport-WS module uses an
-[own protocol](https://github.com/apollographql/subscriptions-transport-ws/blob/master/src/message-types.ts)
-on top of WebSockets to support the subscription notification and
-unfortunately (from the perspective of the Apollo-Client-WS author), but by design, uses an
+for [Apollo Client](https://github.com/apollographql/apollo-client). In contrast to
+this module, Apollo-Client-WS intentionally has no direct built-in GraphQL subscription support.
+Also, [Subscriptions-Transport-WS](https://github.com/apollographql/subscriptions-transport-ws)
+unfortunately, but by design, uses an
 opinionated way of implementing GraphQL subscriptions on the GraphQL engine side.
 The Apollo-Client-WS instead provides plain WebSocket
 communication, without any additional subscription protocol, and hence
