@@ -8,7 +8,7 @@ const ApolloClientWS = require("apollo-client-ws")
 const networkInterface = ApolloClientWS.createNetworkInterface({
     uri: "ws://en1.home.engelschall.com:12345/api",
     opts: {
-        debug:     2,
+        debug:     3,
         encoding:  "json",
         keepalive: 5 * 1000,
         compress:  true
