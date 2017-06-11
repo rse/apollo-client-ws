@@ -217,13 +217,17 @@ server.route({
     config: {
         plugins: {
             websocket: {
-                connect: ({ ws, req }) => {
+                connect: ({ wsf }) => {
                     setTimeout(() => {
-                        let msg = JSON.stringify([ "NOTIFY", [ "foo", "bar", "quux" ] ])
-                        try { ws.send(msg) }
+                        let msg = [ "foo", "bar", "quux" ]
+                        try { wsf.send({ type: "NOTIFY", data: msg }) }
                         catch (ex) { void (ex) }
                     }, 1000)
-                 }
+                },
+                frame:         true,
+                frameEncoding: "json",
+                frameRequest:  "GRAPHQL-REQUEST",
+                frameResponse: "GRAPHQL-RESPONSE"
             }
         },
         payload: { output: "data", parse: true, allow: "application/json" }
@@ -234,20 +238,9 @@ server.route({
             return reply(Boom.badRequest("invalid request"))
 
         /*  unwrap request  */
-        let txid, query, variables, operation
-        if (   request.payload instanceof Array
-            && request.payload.length === 3
-            && request.payload[0] === "REQUEST") {
-            txid      = request.payload[1]
-            query     = request.payload[2].query
-            variables = request.payload[2].variables
-            operation = request.payload[2].operationName
-        }
-        else {
-            query     = request.payload.query
-            variables = request.payload.variables
-            operation = request.payload.operationName
-        }
+        let query     = request.payload.query
+        let variables = request.payload.variables
+        let operation = request.payload.operationName
 
         /*  support special case of GraphiQL  */
         if (typeof variables === "string")
@@ -260,12 +253,8 @@ server.route({
 
         /*  execute the GraphQL query against the GraphQL schema  */
         GraphQL.graphql(schema, query, null, ctx, variables, operation).then((result) => {
-            if (txid !== undefined)
-                result = [ "RESPONSE", txid, result ]
             return reply(result).code(200)
         }).catch((result) => {
-            if (txid !== undefined)
-                result = [ "RESPONSE", txid, result ]
             return reply(result).code(200)
         })
     }
