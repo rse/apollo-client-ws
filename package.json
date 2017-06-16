@@ -28,7 +28,7 @@
     },
     "dependencies": {
         "graphql":                        "~0.10.1",
-        "graphql-query-compress":         "~0.9.1",
+        "graphql-query-compress":         "~0.9.2",
         "websocket-framed":               "~1.0.1",
         "eventemitter3":                  "~2.0.3",
         "latching":                       "~0.9.6",
