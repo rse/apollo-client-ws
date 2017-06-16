@@ -84,7 +84,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
     log (level, msg) {
         if (level <= this._args.opts.debug) {
             let date = (new Date()).toISOString()
-            this._args.opts.log(`${date} DEBUG [${level}]: ${msg}`)
+            this._args.opts.log(`${date} DEBUG [${level}]: ${msg}`, level, msg)
         }
     }
 
