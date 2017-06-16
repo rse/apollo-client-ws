@@ -265,8 +265,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
             }
             else
                 resolve()
-        })
-        .then(() => {
+        }).then(() => {
             /*  send the message  */
             let { frame } = this._wsf.send({ type, data })
             this.log(2, `message sent: ${JSON.stringify(frame)}`)
@@ -290,13 +289,11 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
             }
             else
                 resolve()
-        })
-        .then(() => {
+        }).then(() => {
             /*  apply the middlewares  */
             this.log(2, "query: apply middlewares")
             return this.applyMiddlewares({ request, options })
-        })
-        .then(({ request, options }) => {
+        }).then(({ request, options }) => {
             /*  perform the request  */
             return new Promise((resolve, reject) => {
                 /*  prepare the request  */
@@ -322,13 +319,11 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                         reject(error)
                 }
             })
-        })
-        .then((response) => {
+        }).then((response) => {
             /*  apply the afterwares  */
             this.log(2, "query: apply afterwares")
             return this.applyAfterwares({ response, options })
-        })
-        .then(({ response }) => {
+        }).then(({ response }) => {
             /*  optionally automatically disconnect connection after request  */
             if (this._args.opts.keepalive > 0) {
                 this.log(2, "query: (re)start disconnect timer")
