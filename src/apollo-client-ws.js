@@ -41,7 +41,6 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
         /*  provide default values for options  */
         this._args.opts = Object.assign({
             debug:             0,
-            log:               (msg) => { /* eslint no-console: off */ console.log(msg) },
             protocols:         [],
             compress:          false,
             encoding:          "json",
@@ -54,7 +53,6 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
         let errors = []
         if (!Ducky.validate(this._args.opts, `{
             debug:             number,
-            log:               function,
             protocols:         [ string* ],
             compress:          boolean,
             encoding:          string,
@@ -84,7 +82,8 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
     log (level, msg) {
         if (level <= this._args.opts.debug) {
             let date = (new Date()).toISOString()
-            this._args.opts.log(`${date} DEBUG [${level}]: ${msg}`, level, msg)
+            let log = `${date} DEBUG [${level}]: ${msg}`
+            this.emit("debug", { date, level, msg, log })
         }
     }
 

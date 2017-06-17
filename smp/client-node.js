@@ -14,6 +14,9 @@ const networkInterface = ApolloClientWS.createNetworkInterface({
         compress:  true
     }
 })
+networkInterface.on("debug", ({ log }) => {
+    console.log(log)
+})
 
 /*  receive non-GraphQL messages  */
 networkInterface.on("receive", ({ fid, rid, type, data }) => {
