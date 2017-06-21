@@ -88,7 +88,7 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
     }
 
     /*  ADDON: connect to the peer  */
-    connect (attempt = 0) {
+    connect () {
         const connectInternal = (attempt = 0) => {
             return new Promise((resolve, reject) => {
                 this.emit("connect")
