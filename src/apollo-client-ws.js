@@ -95,7 +95,13 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
                 this.log(1, "connect: begin")
 
                 /*  create a new WebSocket client  */
-                let ws = new WebSocket(this._args.uri, this._args.opts.protocols)
+                let ws
+                if (process.env.PLATFORM === "browser")
+                    ws = new WebSocket(this._args.uri, this._args.opts.protocols)
+                else {
+                    let opts = this.hook("connect:options", "pass", {})
+                    ws = new WebSocket(this._args.uri, this._args.opts.protocols, opts)
+                }
 
                 /*  configure binary transfer  */
                 ws.binaryType = process.env.PLATFORM === "browser" ? "arraybuffer" : "nodebuffer"
