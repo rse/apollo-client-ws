@@ -83,14 +83,14 @@ and (their corresponding) responses:
 
 ```
 request: [
-    fid:  number = ...,
+    fid:  number = <fid>,
     rid:  number = 0,
     type: string = "GRAPHQL-REQUEST",
     data: { query: string, variables?: any, operationName?: string }
 ]
 
 response: [
-    fid:  number = ...,
+    fid:  number = <fid>,
     rid:  number = request.fid,
     type: string = "GRAPHQL-RESPONSE",
     data: { data?: any, error?: any[] }
@@ -102,10 +102,11 @@ the following frame is sent:
 
 ```
 message: [
-    fid:  number = ...,
+    fid:  number = <fid>,
     rid:  number = 0,
     type: string = type,
     data: any    = data
+]
 ```
 
 When receiving such a custom frame, it is delivered via
@@ -141,6 +142,11 @@ networkInterface.on("receive", ({ type, data }) => {
         notify(...data)
 })
 ```
+
+For a more elaborate out-of-the-box solution to GraphQL query subscriptions,
+check out [GraphQL-IO](http://graphql-io.com). Under the hood, it already uses
+[Apollo Client](https://github.com/apollographql/apollo-client) and
+[WebSocket-Framed](https://github.com/rse/websocket-framed).
 
 License
 -------
