@@ -5,6 +5,7 @@
     "keywords":    [ "graphql", "websocket", "network", "interface", "transport", "apollo", "client" ],
     "browser":     "./lib/apollo-client-ws.browser.js",
     "main":        "./lib/apollo-client-ws.node.js",
+    "license":     "MIT",
     "repository": {
         "type": "git",
         "url":  "https://github.com/rse/apollo-client-ws.git"
@@ -14,10 +15,6 @@
         "email": "rse@engelschall.com",
         "url":   "http://engelschall.com"
     },
-    "licenses": [{
-        "type": "MIT",
-        "url":  "http://opensource.org/licenses/MIT"
-    }],
     "homepage": "https://github.com/rse/apollo-client-ws",
     "bugs":     "https://github.com/rse/apollo-client-ws/issues",
     "browserify-shim": {
