@@ -6,7 +6,7 @@ const ApolloClientWS = require("apollo-client-ws")
 
 /*  create the WebSocket network interface for Apollo Client  */
 const networkInterface = ApolloClientWS.createNetworkInterface({
-    uri: "ws://en1.home.engelschall.com:12345/api",
+    uri: "ws://127.0.0.1:12345/api",
     opts: {
         debug:     3,
         encoding:  "json",
@@ -28,22 +28,32 @@ const apolloClient = new ApolloClient.ApolloClient({
     networkInterface: networkInterface
 })
 
-/*  query the server  */
-apolloClient.query({
-    query: gql`{
-        OrgUnit (id: "XT") {
-            id#foo
+const query = (query) => {
+    if (!query.match(/^\s*query\b/))
+        query = `query ${query}`
+    /*  query the server  */
+    apolloClient.query({
+            query: gql`${query}`
+        })
+        .then((response) => {
+            console.log("OK:", JSON.stringify(response))
+        })
+        .catch((err) => {
+            console.log("ERROR:", err)
+        })
+}
+
+query(`{ OrgUnit (id: "XT") {
+            id
             name
             director   { id name }
             parentUnit { id name }
             members    { id name }
-        }
-    }`
-})
-.then((response) => {
-    console.log("OK:", JSON.stringify(response))
-})
-.catch((err) => {
-    console.log("ERROR:", err)
-})
+       }}`)
 
+query(`{ Person (id: "RSE") {
+            id
+            name
+            belongsTo  { id name }
+            supervisor { id name }
+       }}`)

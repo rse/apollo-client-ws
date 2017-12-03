@@ -28,22 +28,32 @@ const apolloClient = new ApolloClient.ApolloClient({
     networkInterface: networkInterface
 })
 
-/*  query the server  */
-apolloClient.query({
-    query: gql`{
-        OrgUnit (id: "XT") {
+const query = (query) => {
+    if (!query.match(/^\s*query\b/))
+        query = `query ${query}`
+    /*  query the server  */
+    apolloClient.query({
+            query: gql`${query}`
+        })
+        .then((response) => {
+            console.log("OK:", require("util").inspect(response, { colors: true, depth: null }))
+        })
+        .catch((err) => {
+            console.log("ERROR:", err)
+        })
+}
+
+query(`{ OrgUnit (id: "XT") {
             id
             name
             director   { id name }
             parentUnit { id name }
             members    { id name }
-        }
-    }`
-})
-.then((response) => {
-    console.log("OK:", require("util").inspect(response, { colors: true, depth: null }))
-})
-.catch((err) => {
-    console.log("ERROR:", err)
-})
+       }}`)
 
+query(`{ Person (id: "RSE") {
+            id
+            name
+            belongsTo  { id name }
+            supervisor { id name }
+       }}`)
