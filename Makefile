@@ -1,6 +1,6 @@
 ##
-##  Tokenizr -- String Tokenization Library
-##  Copyright (c) 2015-2017 Ralf S. Engelschall <rse@engelschall.com>
+##  Apollo-Client-WS -- GraphQL WebSocket Network Link for Apollo Client
+##  Copyright (c) 2017 Ralf S. Engelschall <rse@engelschall.com>
 ##
 ##  Permission is hereby granted, free of charge, to any person obtaining
 ##  a copy of this software and associated documentation files (the

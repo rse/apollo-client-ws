@@ -1,5 +1,5 @@
 /*
-**  apollo-client-ws -- GraphQL WebSocket Network Interface for Apollo Client
+**  Apollo-Client-WS -- GraphQL WebSocket Network Link for Apollo Client
 **  Copyright (c) 2017 Ralf S. Engelschall <rse@engelschall.com>
 **
 **  Permission is hereby granted, free of charge, to any person obtaining
