@@ -4,13 +4,14 @@
     "description":                        "",
     "dependencies": {
         "graphql":                        "~0.11.7",
-        "graphql-tag":                    "~2.5.0",
-        "graphql-tools":                  "~2.11.0",
+        "graphql-tag":                    "~2.6.1",
+        "graphql-tools":                  "~2.14.1",
         "hapi":                           "~16.6.2",
-        "hapi-plugin-websocket":          "~1.2.17",
-        "boom":                           "~7.1.1",
-        "apollo-client":                  "~1.9.3",
-        "apollo-client-ws":               "file:../"
+        "hapi-plugin-websocket":          "~1.2.18",
+        "boom":                           "~6.0.0",
+        "apollo-client":                  "~2.1.0",
+        "apollo-client-ws":               "file:../",
+        "apollo-cache-inmemory":          "~1.1.4"
     },
     "devDependencies": {
         "grunt":                          "~1.0.1",

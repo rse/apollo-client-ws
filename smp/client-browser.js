@@ -1,11 +1,12 @@
 
 /*  external requirements  */
-const gql            = require("graphql-tag")
-const ApolloClient   = require("apollo-client")
-const ApolloClientWS = require("apollo-client-ws")
+const gql                = require("graphql-tag")
+const { ApolloClient }   = require("apollo-client")
+const { ApolloClientWS } = require("apollo-client-ws")
+const { InMemoryCache }  = require("apollo-cache-inmemory")
 
 /*  create the WebSocket network interface for Apollo Client  */
-const networkInterface = ApolloClientWS.createNetworkInterface({
+const link = new ApolloClientWS({
     uri: "ws://en1.home.engelschall.com:12345/api",
     opts: {
         debug:     3,
@@ -14,25 +15,26 @@ const networkInterface = ApolloClientWS.createNetworkInterface({
         compress:  true
     }
 })
-networkInterface.on("debug", ({ log }) => {
+link.on("debug", ({ log }) => {
     console.log(log)
 })
 
 /*  receive non-GraphQL messages  */
-networkInterface.on("receive", ({ fid, rid, type, data }) => {
+link.on("receive", ({ fid, rid, type, data }) => {
     console.log("RECEIVE", fid, rid, type, data)
 })
 
 /*  create the Apollo Client instance  */
-const apolloClient = new ApolloClient.ApolloClient({
-    networkInterface: networkInterface
+const apolloClient = new ApolloClient({
+    link:  link,
+    cache: new InMemoryCache()
 })
 
 /*  query the server  */
 apolloClient.query({
     query: gql`{
         OrgUnit (id: "XT") {
-            id#foo
+            id
             name
             director   { id name }
             parentUnit { id name }

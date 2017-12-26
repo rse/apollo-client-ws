@@ -23,20 +23,30 @@
 */
 
 /*  external dependencies  */
+import { ApolloLink, Observable }     from "apollo-link"
 import WebSocket                      from "ws"
 import WebSocketFramed                from "websocket-framed"
 import { print as printGraphQLQuery } from "graphql/language/printer"
 import compressGraphQLQuery           from "graphql-query-compress"
 import Latching                       from "latching"
+import EventEmitter                   from "eventemitter3"
 import Ducky                          from "ducky"
 
-/*  internal dependencies  */
-import NetworkInterfaceStd            from "./apollo-client-std"
-
-/*  Apollo Client Network Interface for WebSocket Communication  */
-class NetworkInterfaceWS extends NetworkInterfaceStd {
+/*  Apollo Client Link Interface for WebSocket Communication  */
+class ApolloClientWS extends ApolloLink {
     constructor (...args) {
-        super(...args)
+        /*  initialize ApolloLink base class  */
+        super()
+
+        /*  sanity check constructor arguments  */
+        if (args.length === 2 && typeof args[0] === "string" && typeof args[1] === "object")
+            this._args = { uri: args[0], opts: args[1] }
+        else if (args.length === 1 && typeof args[0] === "object")
+            this._args = args[0]
+        else
+            throw new Error("invalid arguments to ApolloClientWS constructor (invalid number or type of arguments)")
+        if (this._args.uri === undefined)
+            throw new Error("invalid arguments to ApolloClientWS constructor (missing URI)")
 
         /*  provide default values for options  */
         this._args.opts = Object.assign({
@@ -68,15 +78,30 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
         this._to   = null
         this._tx   = {}
 
-        /*  provide latching sub-system  */
-        this.latching = new Latching()
+        /*  provide hook latching sub-system  */
+        this._latching = new Latching()
+
+        /*  provide event emitter sub-system  */
+        this._emitter  = new EventEmitter()
     }
 
-    /*  pass-through methods of latching sub-system  */
-    hook    (...args) { return this.latching.hook(...args) }
-    at      (...args) { return this.latching.at(...args) }
-    latch   (...args) { return this.latching.latch(...args) }
-    unlatch (...args) { return this.latching.unlatch(...args) }
+    /*  ADDON: pass-through methods of latching sub-system  */
+    hook               (...args) { return this._latching.hook(...args) }
+    at                 (...args) { return this._latching.at(...args) }
+    latch              (...args) { return this._latching.latch(...args) }
+    unlatch            (...args) { return this._latching.unlatch(...args) }
+
+    /*  ADDON: pass-through methods of emitter sub-system  */
+    emit               (...args) { return this._emitter.emit(...args) }
+    once               (...args) { return this._emitter.once(...args) }
+    on                 (...args) { return this._emitter.on(...args) }
+    off                (...args) { return this._emitter.off(...args) }
+    addListener        (...args) { return this._emitter.addListener(...args) }
+    removeListener     (...args) { return this._emitter.removeListener(...args) }
+    removeAllListeners (...args) { return this._emitter.removeAllListeners(...args) }
+    listenerCount      (...args) { return this._emitter.listenerCount(...args) }
+    listeners          (...args) { return this._emitter.listeners(...args) }
+    eventNames         (...args) { return this._emitter.eventNames(...args) }
 
     /*  ADDON: log a debug message  */
     log (level, msg) {
@@ -279,76 +304,86 @@ class NetworkInterfaceWS extends NetworkInterfaceStd {
         })
     }
 
-    /*  STANDARD: send query to the peer  */
-    query (request) {
-        this.emit("query", request)
-        this.log(1, "query: begin")
-        const options = Object.assign({}, this._args.opts)
-        return new Promise((resolve, reject) => {
-            /*  optionally perform the deferred connect  */
-            if (this._ws === null) {
-                this.log(2, "query: on-the-fly connect")
-                this.connect()
-                    .then(() => resolve())
-                    .catch((err) => reject(err))
-            }
-            else
-                resolve()
-        }).then(() => {
-            /*  apply the middlewares  */
-            this.log(2, "query: apply middlewares")
-            return this.applyMiddlewares({ request, options })
-        }).then(({ request, options }) => {
-            /*  perform the request  */
-            return new Promise((resolve, reject) => {
-                /*  prepare the request  */
-                request = Object.assign({}, request, {
-                    query: printGraphQLQuery(request.query)
-                })
-                if (this._args.opts.compress === true)
-                    request.query = compressGraphQLQuery(request.query)
-                request = this.hook("query:request", "pass", request)
-
-                /*  send the request  */
-                this.log(2, `query: request: ${JSON.stringify(request)}`)
-                let { frame } = this._wsf.send({ type: "GRAPHQL-REQUEST", data: request })
-                this.log(3, `query: request (framed): ${JSON.stringify(frame)}`)
-
-                /*  queue request and await response or error  */
-                let fid = frame.fid
-                this._tx[fid] = (response, error) => {
-                    delete this._tx[fid]
-                    if (response)
-                        resolve(response)
-                    else
-                        reject(error)
+    /*  STANDARD: send request to the peer  */
+    request (operation) {
+        return new Observable((observer) => {
+            this.emit("request", operation)
+            this.log(1, "request: begin")
+            // const { operationName, extensions, variables, query } = operation
+            void (new Promise((resolve, reject) => {
+                /*  optionally perform the deferred connect  */
+                if (this._ws === null) {
+                    this.log(2, "request: on-the-fly connect")
+                    this.connect()
+                        .then(() => resolve())
+                        .catch((err) => reject(err))
                 }
-            })
-        }).then((response) => {
-            /*  apply the afterwares  */
-            this.log(2, "query: apply afterwares")
-            return this.applyAfterwares({ response, options })
-        }).then(({ response }) => {
-            /*  optionally automatically disconnect connection after request  */
-            if (this._args.opts.keepalive > 0) {
-                this.log(2, "query: (re)start disconnect timer")
-                if (this._to !== null)
-                    clearTimeout(this._to)
-                this._to = setTimeout(() => {
-                    this.disconnect()
-                }, this._args.opts.keepalive)
+                else
+                    resolve()
+            }).then(() => {
+                /*  perform the request  */
+                return new Promise((resolve, reject) => {
+                    /*  prepare the request  */
+                    let request = Object.assign({}, operation)
+                    request.query = printGraphQLQuery(request.query)
+                    if (this._args.opts.compress === true)
+                        request.query = compressGraphQLQuery(request.query)
+                    if (request.operationName === null)
+                        delete request.operationName
+                    if (Object.keys(request.variables).length === 0)
+                        delete request.variables
+                    if (Object.keys(request.extensions).length === 0)
+                        delete request.extensions
+                    request = this.hook("query:request", "pass", request)
+
+                    /*  send the request  */
+                    this.log(2, `request: request: ${JSON.stringify(request)}`)
+                    let { frame } = this._wsf.send({ type: "GRAPHQL-REQUEST", data: request })
+                    this.log(3, `request: request (framed): ${JSON.stringify(frame)}`)
+
+                    /*  queue request and await response or error  */
+                    let fid = frame.fid
+                    this._tx[fid] = (response, error) => {
+                        delete this._tx[fid]
+                        if (response)
+                            resolve(response)
+                        else
+                            reject(error)
+                    }
+                })
+            }).then((response) => {
+                /*  optionally automatically disconnect connection after request  */
+                if (this._args.opts.keepalive > 0) {
+                    this.log(2, "request: (re)start auto-disconnect timer")
+                    if (this._to !== null)
+                        clearTimeout(this._to)
+                    this._to = setTimeout(() => {
+                        this.disconnect()
+                    }, this._args.opts.keepalive)
+                }
+                this.log(2, `request: response: ${JSON.stringify(response)}`)
+                this.log(1, "request: end")
+                return response
+            }).then((response) => {
+                /*  pass response to other Apollo Link instances  */
+                operation.setContext({ response })
+
+                /*  pass response to caller  */
+                observer.next(response)
+                observer.complete()
+            }).catch((err) => {
+                /*  pass error to caller  */
+                observer.error(err)
+            }))
+            return () => {
+                /*  no-op: we cannot cancel the operation  */
             }
-            this.log(1, "query: end")
-            this.log(2, `query: response: ${JSON.stringify(response)}`)
-            return response
         })
     }
 }
 
-/*  export classes  */
+/*  API export */
 module.exports = {
-    NetworkInterfaceStd,
-    NetworkInterfaceWS,
-    createNetworkInterface: (...args) => new NetworkInterfaceWS(...args)
+    ApolloClientWS
 }
 

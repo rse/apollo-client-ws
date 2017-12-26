@@ -2,7 +2,7 @@
 Apollo-Client-WS
 ================
 
-GraphQL WebSocket Network Interface for Apollo Client
+GraphQL WebSocket Network Link for Apollo Client
 
 <p/>
 <img src="https://nodei.co/npm/apollo-client-ws.png?downloads=true&stars=true" alt=""/>
@@ -15,7 +15,7 @@ About
 
 This is a [GraphQL](http://graphql.org/)
 [WebSocket](https://html.spec.whatwg.org/multipage/comms.html#network)
-based `NetworkInterface` layer for the JavaScript GraphQL client library
+based `ApolloLink` layer for the JavaScript GraphQL client library
 [Apollo Client](https://github.com/apollographql/apollo-client).
 It was developed for and is intended to be used with the [HAPI](http://hapijs.com/) server
 framework and its seamless WebSocket protocol integration module
@@ -32,18 +32,19 @@ Installation
 ------------
 
 ```shell
-$ npm install graphql-tag apollo-client apollo-client-ws
+$ npm install graphql-tag apollo-client apollo-client-ws apollo-link
 ```
 
 Usage
 -----
 
 ```js
-const gql            = require("graphql-tag")
-const ApolloClient   = require("apollo-client")
-const ApolloClientWS = require("apollo-client-ws")
+const gql                = require("graphql-tag")
+const { ApolloClient }   = require("apollo-client")
+const { ApolloClientWS } = require("apollo-client-ws")
+const { InMemoryCache }  = require("apollo-cache-inmemory")
 
-const networkInterface = ApolloClientWS.createNetworkInterface({
+const link = new ApolloClientWS({
     uri: "ws://127.0.0.1:12345/api",
     opts: {
         /*  (all options and their default values)  */
@@ -58,11 +59,12 @@ const networkInterface = ApolloClientWS.createNetworkInterface({
     }
 })
 
-const apolloClient = new ApolloClient.ApolloClient({
-    networkInterface: networkInterface
+const client = new ApolloClient({
+    link:  link,
+    cache: new InMemoryCache()
 })
 
-apolloClient.query({ query: gql`{ ... }` })
+client.query({ query: gql`{ ... }` })
     .then((response) => { ...  })
     .catch((err)     => { ...  })
 ```
@@ -97,7 +99,7 @@ response: [
 ]
 ```
 
-When sending a custom message via `networkInterface::send(type: string, data: any)`,
+When sending a custom message via `ApolloClientWS::send(type: string, data: any)`,
 the following frame is sent:
 
 ```
@@ -110,12 +112,14 @@ message: [
 ```
 
 When receiving such a custom frame, it is delivered via
-`networkInterface::on("receive", { type, data }) => { ... })`.
+`ApolloClientWS::on("receive", { type, data }) => { ... })`.
 
 Notice
 ------
 
 There is also the alternative module
+[Apollo-Link-WS](https://github.com/apollographql/apollo-link/tree/master/packages/apollo-link-ws)
+and its underlying
 [Subscriptions-Transport-WS](https://github.com/apollographql/subscriptions-transport-ws)
 for [Apollo Client](https://github.com/apollographql/apollo-client). In contrast to
 this module, Apollo-Client-WS intentionally has no direct built-in GraphQL subscription support.
@@ -134,10 +138,10 @@ receiving non-GraphQL response messages from the server.
 ```js
 /*  send a subscribe command  */
 let data = [ "foo", 42 ]
-networkInterface.send("SUBSCRIBE", data)
+link.send("SUBSCRIBE", data)
 
 /*  receive a notification command  */
-networkInterface.on("receive", ({ type, data }) => {
+link.on("receive", ({ type, data }) => {
     if (type === "NOTIFY")
         notify(...data)
 })
