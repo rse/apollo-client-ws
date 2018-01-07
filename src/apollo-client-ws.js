@@ -196,10 +196,11 @@ class ApolloClientWS extends ApolloLink {
                     }
                 }
                 wsf.on("message", onMessage)
-                const onMessageError = (err) => {
-                    this.log(2, `error on message receive: ${err}`)
+                const onSocketError = (err) => {
+                    this.log(2, `WebSocket error: ${err}`)
+                    this.emit("error", `WebSocket error: ${err}`)
                 }
-                wsf.on("error", onMessageError)
+                wsf.on("error", onSocketError)
 
                 /*  react (once) on the connection closing  */
                 const onClose = (ev) => {
