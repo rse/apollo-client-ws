@@ -310,7 +310,8 @@ class ApolloClientWS extends ApolloLink {
         return new Observable((observer) => {
             this.emit("request", operation)
             this.log(1, "request: begin")
-            // const { operationName, extensions, variables, query } = operation
+            /*  we here would have (but don't use):
+                const { operationName, extensions, variables, query } = operation  */
             void (new Promise((resolve, reject) => {
                 /*  optionally perform the deferred connect  */
                 if (this._ws === null) {
