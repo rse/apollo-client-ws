@@ -198,7 +198,7 @@ class ApolloClientWS extends ApolloLink {
                 wsf.on("message", onMessage)
                 const onSocketError = (err) => {
                     this.log(2, `WebSocket error: ${err}`)
-                    /*  not now, because connect/disconnect's we don't want to mention:
+                    /*  not now, because of auto-reconnects we don't want to mention everything:
                         this.emit("error", `WebSocket error: ${err}`)  */
                 }
                 wsf.on("error", onSocketError)
