@@ -266,6 +266,7 @@ class ApolloClientWS extends ApolloLink {
                         this._ws  = null
                         this._wsf = null
                         this.log(1, "disconnect: end")
+                        this.emit("close")
                         resolve()
                     }
                     this._ws.addEventListener("close", onClose)
