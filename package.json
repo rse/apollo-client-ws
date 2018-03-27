@@ -29,9 +29,9 @@
         "graphql-query-compress":         "1.0.0",
         "websocket-framed":               "1.0.14",
         "eventemitter3":                  "3.0.1",
-        "latching":                       "0.9.7",
+        "latching":                       "1.0.0",
         "es6-promise":                    "4.2.4",
-        "ducky":                          "2.6.4",
+        "ducky":                          "2.6.5",
         "ws":                             "5.1.0"
     },
     "optionalDependencies": {
