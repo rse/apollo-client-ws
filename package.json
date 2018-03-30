@@ -26,8 +26,8 @@
     },
     "dependencies": {
         "graphql":                        "0.13.2",
-        "graphql-query-compress":         "1.0.0",
-        "websocket-framed":               "1.0.14",
+        "graphql-query-compress":         "1.0.1",
+        "websocket-framed":               "1.0.15",
         "eventemitter3":                  "3.0.1",
         "latching":                       "1.0.0",
         "es6-promise":                    "4.2.4",
