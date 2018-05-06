@@ -26,8 +26,8 @@
     },
     "dependencies": {
         "graphql":                        "0.13.2",
-        "graphql-query-compress":         "1.0.4",
-        "websocket-framed":               "1.0.18",
+        "graphql-query-compress":         "1.0.5",
+        "websocket-framed":               "1.0.19",
         "eventemitter3":                  "3.1.0",
         "latching":                       "1.0.1",
         "es6-promise":                    "4.2.4",
@@ -35,8 +35,8 @@
         "ws":                             "5.1.1"
     },
     "optionalDependencies": {
-        "utf-8-validate":                 "4.0.1",
-        "bufferutil":                     "3.0.4"
+        "utf-8-validate":                 "4.0.2",
+        "bufferutil":                     "3.0.5"
     },
     "devDependencies": {
         "apollo-client":                  ">=2.1.0",
@@ -55,8 +55,8 @@
         "babel-preset-es2017":            "6.24.1",
         "babel-plugin-transform-runtime": "6.23.0",
         "uglifyify":                      "5.0.0",
-        "browserify-header":              "0.9.2",
-        "browserify-derequire":           "0.9.4",
+        "browserify-header":              "0.9.4",
+        "browserify-derequire":           "0.9.6",
         "browserify-shim":                "3.8.14",
         "babel-eslint":                   "8.2.3",
         "eslint":                         "4.19.1",
