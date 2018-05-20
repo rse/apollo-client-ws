@@ -26,8 +26,8 @@
     },
     "dependencies": {
         "graphql":                        "0.13.2",
-        "graphql-query-compress":         "1.0.6",
-        "websocket-framed":               "1.0.20",
+        "graphql-query-compress":         "1.0.7",
+        "websocket-framed":               "1.0.21",
         "eventemitter3":                  "3.1.0",
         "latching":                       "1.0.1",
         "es6-promise":                    "4.2.4",
@@ -63,7 +63,7 @@
         "eslint-config-standard":         "11.0.0",
         "eslint-plugin-standard":         "3.1.0",
         "eslint-plugin-promise":          "3.7.0",
-        "eslint-plugin-import":           "2.11.0",
+        "eslint-plugin-import":           "2.12.0",
         "eslint-plugin-node":             "6.0.1"
     },
     "scripts": {
