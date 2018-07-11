@@ -202,69 +202,68 @@ let query = `
     }
 `
 
-/*  setup network service  */
-let server = new HAPI.Server()
-server.connection({
-    address:  "0.0.0.0",
-    port:     12345
-})
-server.register(HAPIWebSocket)
+;(async () => {
+    /*  setup network service  */
+    let server = new HAPI.Server({
+        address:  "0.0.0.0",
+        port:     12345
+    })
+    await server.register(HAPIWebSocket)
 
-/*  establish the HAPI route for GraphQL API  */
-server.route({
-    method: "POST",
-    path:   "/api",
-    config: {
-        plugins: {
-            websocket: {
-                connect: ({ wsf }) => {
-                    setTimeout(() => {
-                        let msg = [ "foo", "bar", "quux" ]
-                        try { wsf.send({ type: "NOTIFY", data: msg }) }
-                        catch (ex) { void (ex) }
-                    }, 1000)
-                },
-                frame:         true,
-                frameEncoding: "json",
-                frameRequest:  "GRAPHQL-REQUEST",
-                frameResponse: "GRAPHQL-RESPONSE"
-            }
+    /*  establish the HAPI route for GraphQL API  */
+    server.route({
+        method: "POST",
+        path:   "/api",
+        config: {
+            plugins: {
+                websocket: {
+                    connect: ({ wsf }) => {
+                        setTimeout(() => {
+                            let msg = [ "foo", "bar", "quux" ]
+                            try { wsf.send({ type: "NOTIFY", data: msg }) }
+                            catch (ex) { void (ex) }
+                        }, 1000)
+                    },
+                    frame:         true,
+                    frameEncoding: "json",
+                    frameRequest:  "GRAPHQL-REQUEST",
+                    frameResponse: "GRAPHQL-RESPONSE"
+                }
+            },
+            payload: { output: "data", parse: true, allow: "application/json" }
         },
-        payload: { output: "data", parse: true, allow: "application/json" }
-    },
-    handler: (request, reply) => {
-        /*  determine request  */
-        if (typeof request.payload !== "object" || request.payload === null)
-            return reply(Boom.badRequest("invalid request"))
+        handler: async (request, h) => {
+            /*  determine request  */
+            if (typeof request.payload !== "object" || request.payload === null)
+                return Boom.badRequest("invalid request")
 
-        /*  unwrap request  */
-        let query     = request.payload.query
-        let variables = request.payload.variables
-        let operation = request.payload.operationName
+            /*  unwrap request  */
+            let query     = request.payload.query
+            let variables = request.payload.variables
+            let operation = request.payload.operationName
 
-        /*  support special case of GraphiQL  */
-        if (typeof variables === "string")
-            variables = JSON.parse(variables)
-        if (typeof operation === "object" && operation !== null)
-            return reply(Boom.badRequest("invalid request"))
+            /*  support special case of GraphiQL  */
+            if (typeof variables === "string")
+                variables = JSON.parse(variables)
+            if (typeof operation === "object" && operation !== null)
+                return Boom.badRequest("invalid request")
 
-        /*  create context for GraphQL resolver functions  */
-        let ctx = { /* empty for this sample  */ }
+            /*  create context for GraphQL resolver functions  */
+            let ctx = { /* empty for this sample  */ }
 
-        /*  execute the GraphQL query against the GraphQL schema  */
-        GraphQL.graphql(schema, query, null, ctx, variables, operation).then((result) => {
-            return reply(result).code(200)
-        }).catch((result) => {
-            return reply(result).code(200)
-        })
-    }
-})
+            /*  execute the GraphQL query against the GraphQL schema  */
+            return GraphQL.graphql(schema, query, null, ctx, variables, operation).then((result) => {
+                return h.response(result).code(200)
+            }).catch((result) => {
+                return h.response(result).code(200)
+            })
+        }
+    })
 
-/*  start server  */
-server.start((err) => {
-    if (err)
-        console.log("ERROR", err)
-    else
-        console.log(`GraphQL  API: [POST] ${server.info.uri}/api`)
+    /*  start server  */
+    await server.start()
+    console.log(`GraphQL API: [POST] ${server.info.uri}/api`)
+})().catch((err) => {
+    console.log("ERROR", err)
 })
 
