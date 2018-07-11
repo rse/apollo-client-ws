@@ -35,8 +35,8 @@
         "ws":                             "5.2.1"
     },
     "optionalDependencies": {
-        "utf-8-validate":                 "4.0.2",
-        "bufferutil":                     "3.0.5"
+        "utf-8-validate":                 "5.0.1",
+        "bufferutil":                     "4.0.0"
     },
     "devDependencies": {
         "apollo-client":                  ">=2.1.0",
@@ -59,7 +59,7 @@
         "browserify-derequire":           "0.9.6",
         "browserify-shim":                "3.8.14",
         "babel-eslint":                   "8.2.5",
-        "eslint":                         "5.0.1",
+        "eslint":                         "5.1.0",
         "eslint-config-standard":         "11.0.0",
         "eslint-plugin-standard":         "3.1.0",
         "eslint-plugin-promise":          "3.8.0",
