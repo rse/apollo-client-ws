@@ -299,6 +299,23 @@ class ApolloClientWS extends ApolloLink {
             else
                 resolve()
         }).then(() => {
+            /*  await WebSocket ready-state OPEN  */
+            return new Promise((resolve, reject) => {
+                const check = (k) => {
+                    if (k <= 0)
+                        reject(new Error("failed to await WebSocket ready-state OPEN"))
+                    else if (this._ws.readyState === WebSocket.CLOSED)
+                        reject(new Error("failed to send to WebSocket, already in ready-state CLOSED"))
+                    else if (this._ws.readyState === WebSocket.CLOSING)
+                        reject(new Error("failed to send to WebSocket, already in ready-state CLOSING"))
+                    else if (this._ws.readyState === WebSocket.CONNECTING)
+                        setTimeout(() => check(k - 1), 100)
+                    else
+                        resolve()
+                }
+                check(100)
+            })
+        }).then(() => {
             /*  send the message  */
             let { frame } = this._wsf.send({ type, data })
             this.log(2, `message sent: ${JSON.stringify(frame)}`)
@@ -324,6 +341,23 @@ class ApolloClientWS extends ApolloLink {
                 }
                 else
                     resolve()
+            }).then(() => {
+                /*  await WebSocket ready-state OPEN  */
+                return new Promise((resolve, reject) => {
+                    const check = (k) => {
+                        if (k <= 0)
+                            reject(new Error("failed to await WebSocket ready-state OPEN"))
+                        else if (this._ws.readyState === WebSocket.CLOSED)
+                            reject(new Error("failed to send to WebSocket, already in ready-state CLOSED"))
+                        else if (this._ws.readyState === WebSocket.CLOSING)
+                            reject(new Error("failed to send to WebSocket, already in ready-state CLOSING"))
+                        else if (this._ws.readyState === WebSocket.CONNECTING)
+                            setTimeout(() => check(k - 1), 100)
+                        else
+                            resolve()
+                    }
+                    check(100)
+                })
             }).then(() => {
                 /*  perform the request  */
                 return new Promise((resolve, reject) => {
