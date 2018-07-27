@@ -55,7 +55,7 @@ class ApolloClientWS extends ApolloLink {
             compress:          false,
             encoding:          "json",
             keepalive:         0,
-            reconnectattempts: 10,
+            reconnectattempts: -1,
             reconnectdelay:    2 * 1000
         }, this._args.opts)
 
@@ -141,7 +141,7 @@ class ApolloClientWS extends ApolloLink {
                     this.log(1, `connect: end (connection error: ${ev.message})`)
                     ws.removeEventListener("error", onError)
                     ws._errorOnConnect = true
-                    if (attempt < this._args.opts.reconnectattempts) {
+                    if (attempt < this._args.opts.reconnectattempts || this._args.opts.reconnectattempts === -1) {
                         this.log(2, "connection error: trigger new connect attempt " +
                             `(in ${Math.trunc(this._args.opts.reconnectdelay / 1000)}s)`)
                         setTimeout(() => {
