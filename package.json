@@ -26,13 +26,13 @@
     },
     "dependencies": {
         "graphql":                        "0.13.2",
-        "graphql-query-compress":         "1.0.9",
+        "graphql-query-compress":         "1.0.11",
         "websocket-framed":               "1.0.23",
         "eventemitter3":                  "3.1.0",
         "latching":                       "1.0.1",
         "es6-promise":                    "4.2.4",
         "ducky":                          "2.6.11",
-        "ws":                             "5.2.1"
+        "ws":                             "6.0.0"
     },
     "optionalDependencies": {
         "utf-8-validate":                 "5.0.1",
@@ -58,13 +58,13 @@
         "browserify-header":              "0.9.4",
         "browserify-derequire":           "0.9.6",
         "browserify-shim":                "3.8.14",
-        "babel-eslint":                   "8.2.5",
-        "eslint":                         "5.1.0",
+        "babel-eslint":                   "8.2.6",
+        "eslint":                         "5.2.0",
         "eslint-config-standard":         "11.0.0",
         "eslint-plugin-standard":         "3.1.0",
         "eslint-plugin-promise":          "3.8.0",
         "eslint-plugin-import":           "2.13.0",
-        "eslint-plugin-node":             "6.0.1"
+        "eslint-plugin-node":             "7.0.1"
     },
     "scripts": {
         "prepublishOnly": "grunt default",
