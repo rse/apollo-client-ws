@@ -11,11 +11,13 @@ module.exports = function (grunt) {
                 options: {
                     transform: [
                         [ "babelify", {
-                            presets: [ "es2015", "es2016", "es2017" ],
-                            plugins: [ [ "transform-runtime", {
-                                "polyfill":    true,
-                                "regenerator": false
-                            } ] ]
+                            presets: [
+                                [ "@babel/preset-env", {
+                                    "targets": {
+                                        "browsers": "last 2 versions, not dead"
+                                    }
+                                } ]
+                            ]
                         } ]
                     ],
                     browserifyOptions: {

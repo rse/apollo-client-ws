@@ -44,11 +44,13 @@ module.exports = function (grunt) {
                     transform: [
                         [ "envify", { PLATFORM: "browser" } ],
                         [ "babelify", {
-                            presets: [ "es2015", "es2016", "es2017" ],
-                            plugins: [ [ "transform-runtime", {
-                                "polyfill":    true,
-                                "regenerator": false
-                            } ] ]
+                            presets: [
+                                [ "@babel/preset-env", {
+                                    "targets": {
+                                        "browsers": "last 2 versions, not dead"
+                                    }
+                                } ]
+                            ]
                         } ],
                         "browserify-shim",
                         [ "uglifyify", { sourceMap: false, global: true } ]
@@ -70,7 +72,15 @@ module.exports = function (grunt) {
                 options: {
                     transform: [
                         [ "envify", { PLATFORM: "node" } ],
-                        [ "babelify", { presets: [ "es2015", "es2016", "es2017" ] } ]
+                        [ "babelify", {
+                            presets: [
+                                [ "@babel/preset-env", {
+                                    "targets": {
+                                        "node": "6.0"
+                                    }
+                                } ]
+                            ]
+                        } ]
                     ],
                     plugin: [
                         [ "browserify-derequire" ],
