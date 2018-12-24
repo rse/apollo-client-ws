@@ -47,7 +47,7 @@ module.exports = function (grunt) {
                             presets: [
                                 [ "@babel/preset-env", {
                                     "targets": {
-                                        "browsers": "last 2 versions, not dead"
+                                        "browsers": "last 2 versions, > 1%, ie 11"
                                     }
                                 } ]
                             ]
@@ -76,7 +76,7 @@ module.exports = function (grunt) {
                             presets: [
                                 [ "@babel/preset-env", {
                                     "targets": {
-                                        "node": "6.0"
+                                        "node": "8.0.0"
                                     }
                                 } ]
                             ]
