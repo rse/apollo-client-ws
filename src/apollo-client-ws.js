@@ -60,7 +60,7 @@ class ApolloClientWS extends ApolloLink {
         }, this._args.opts)
 
         /*  validate options  */
-        let errors = []
+        const errors = []
         if (!Ducky.validate(this._args.opts, `{
             debug:             number,
             protocols:         [ string* ],
@@ -106,8 +106,8 @@ class ApolloClientWS extends ApolloLink {
     /*  ADDON: log a debug message  */
     log (level, msg) {
         if (level <= this._args.opts.debug) {
-            let date = (new Date()).toISOString()
-            let log = `${date} DEBUG [${level}]: ${msg}`
+            const date = (new Date()).toISOString()
+            const log = `${date} DEBUG [${level}]: ${msg}`
             this.emit("debug", { date, level, msg, log })
         }
     }
@@ -124,7 +124,7 @@ class ApolloClientWS extends ApolloLink {
                 if (process.env.PLATFORM === "browser")
                     ws = new WebSocket(this._args.uri, this._args.opts.protocols)
                 else {
-                    let opts = this.hook("connect:options", "pass", {})
+                    const opts = this.hook("connect:options", "pass", {})
                     ws = new WebSocket(this._args.uri, this._args.opts.protocols, opts)
                 }
 
@@ -132,7 +132,7 @@ class ApolloClientWS extends ApolloLink {
                 ws.binaryType = process.env.PLATFORM === "browser" ? "arraybuffer" : "nodebuffer"
 
                 /*   create a new WebSocket-Framed wrapper  */
-                let wsf = new WebSocketFramed(ws, this._args.opts.encoding)
+                const wsf = new WebSocketFramed(ws, this._args.opts.encoding)
 
                 /*  react (once) on error messages  */
                 const onError = (ev) => {
@@ -176,7 +176,7 @@ class ApolloClientWS extends ApolloLink {
                 /*  react (always) on received response messages  */
                 const onMessage = (ev) => {
                     ev = this.hook("receive:message", "pass", ev)
-                    let { rid, type, data } = ev.frame
+                    const { rid, type, data } = ev.frame
                     if (   type === "GRAPHQL-RESPONSE"
                         && typeof data === "object") {
                         /*  is a valid GraphQL response  */
@@ -217,7 +217,7 @@ class ApolloClientWS extends ApolloLink {
                     this._to  = null
                     this._ws  = null
                     this._wsf = null
-                    let errorOnConnect = ws._errorOnConnect
+                    const errorOnConnect = ws._errorOnConnect
                     delete ws._errorOnConnect
                     this.emit("close")
                     if (!errorOnConnect && (ev.code > 1000 || this._args.opts.keepalive === 0)) {
@@ -317,7 +317,7 @@ class ApolloClientWS extends ApolloLink {
             })
         }).then(() => {
             /*  send the message  */
-            let { frame } = this._wsf.send({ type, data })
+            const { frame } = this._wsf.send({ type, data })
             this.log(2, `message sent: ${JSON.stringify(frame)}`)
             this.log(1, "send: end")
             return frame
@@ -376,11 +376,11 @@ class ApolloClientWS extends ApolloLink {
 
                     /*  send the request  */
                     this.log(2, `request: request: ${JSON.stringify(request)}`)
-                    let { frame } = this._wsf.send({ type: "GRAPHQL-REQUEST", data: request })
+                    const { frame } = this._wsf.send({ type: "GRAPHQL-REQUEST", data: request })
                     this.log(3, `request: request (framed): ${JSON.stringify(frame)}`)
 
                     /*  queue request and await response or error  */
-                    let fid = frame.fid
+                    const fid = frame.fid
                     this._tx[fid] = (response, error) => {
                         delete this._tx[fid]
                         if (response)
