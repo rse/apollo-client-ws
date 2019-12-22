@@ -3,9 +3,9 @@
 const util          = require("util")
 const GraphQL       = require("graphql")
 const GraphQLTools  = require("graphql-tools")
-const HAPI          = require("hapi")
+const HAPI          = require("@hapi/hapi")
+const Boom          = require("@hapi/boom")
 const HAPIWebSocket = require("hapi-plugin-websocket")
-const Boom          = require("boom")
 
 /*  the particular underlying data  */
 let data = {
