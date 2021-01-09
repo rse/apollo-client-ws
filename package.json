@@ -1,6 +1,6 @@
 {
     "name":        "apollo-client-ws",
-    "version":     "2.6.0",
+    "version":     "2.6.1",
     "description": "GraphQL WebSocket Network Interface for Apollo Client",
     "keywords":    [ "graphql", "websocket", "network", "interface", "transport", "apollo", "client" ],
     "browser":     "./lib/apollo-client-ws.browser.js",
